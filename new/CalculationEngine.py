@@ -1,4 +1,45 @@
+import inspect
 import math
+from icecream import ic
+
+
+def icAll(func, verbose=True):
+    """
+    A decorator that uses icecream to automatically applies ic to every variable in the function
+
+    :param func: Function to be decorated
+    :param verbose: If True, print meta information ('variables', 'func', 'signature', 'parameters')
+    :return: decorator
+    """
+    def wrapper(*args, **kwargs):
+        # Retrieve the function's signature (parameters)
+        signature = inspect.signature(func)
+        parameters = signature.parameters
+
+        # Combine function arguments and keyword arguments into a dictionary
+        variables = {k: v for k, v in zip(parameters, args)}
+        variables.update(kwargs)
+
+        # Retrieve local variables defined in the function body
+        result = func(*args, **kwargs)
+
+        # Get the local variables in the function using inspect
+        frame = inspect.currentframe().f_locals
+        variables.update(frame)
+
+        # Log variables using icecream
+        for var_name, var_value in variables.items():
+            if verbose:
+                ic(var_name, var_value)  # Print variable names and values if verbose is Truei
+            else:
+                if var_name not in ['variables', 'func', 'signature', 'parameters']:
+                    ic(var_name, var_value)
+
+        return result
+
+    return wrapper
+
+
 def calculate_alpha(firstPoint, secondPoint):
     """
     Calculate Alpha, the angle in degrees the camera's Y-axis deviates.
@@ -31,7 +72,7 @@ def calculate_beta(firstPoint, secondPoint):
 import math
 
 
-def calculate_scale(pixel_point1, pixel_point2, real_point1, real_point2):
+def calculate_scale(cameraPoint1, cameraPoint2, real_point1, real_point2):
     """
     Calculate the scale (pixel/mm) between two points.
 
@@ -43,8 +84,8 @@ def calculate_scale(pixel_point1, pixel_point2, real_point1, real_point2):
     float: Scale in pixels per mm.
     """
     # Unpack the pixel and real-world points
-    x1, y1 = pixel_point1
-    x2, y2 = pixel_point2
+    x1, y1 = cameraPoint1
+    x2, y2 = cameraPoint2
     X1, Y1 = real_point1
     X2, Y2 = real_point2
 
@@ -87,6 +128,53 @@ def calculate_movement(x2, y2, pixel_per_mm, Alpha_deg, Beta_deg):
 
     return T1, T2
 
+# @icAll
+def calculateCameraMovementOffset(cameraPoint1, real_point1, real_point2, cameraPoint2=None, cameraPoint3=None):
+    # ic(cameraPoint1, cameraPoint2, cameraPoint3, real_point1, real_point2)
+    cameraPoint2, cameraPoint3 = extrapolateManipulatorPosition(
+        cameraPoint1, cameraPoint2
+    ) if cameraPoint3 is None else (cameraPoint2, cameraPoint3)
+
+    alpha = calculate_alpha(cameraPoint1, cameraPoint2)
+    beta = calculate_beta(cameraPoint2, cameraPoint3)
+    scalePixelInMilimeter = calculate_scale(cameraPoint1, cameraPoint2, real_point1, real_point2)
+    ic(alpha, beta, scalePixelInMilimeter)
+    cameraXOffset, cameraYOffset = calculate_movement(cameraPoint2[0], cameraPoint2[1], scalePixelInMilimeter, alpha, beta)
+
+    return cameraXOffset, cameraYOffset
+
+def extrapolateManipulatorPosition(firstPoint, secondPoint=None, defaultInitialOffset = 2.0):
+    x1, y1 = firstPoint
+    secondPoint = (x1 + defaultInitialOffset, y1 - defaultInitialOffset) if secondPoint is None else secondPoint
+    x2, y2 = secondPoint
+    # Calculate thirdPoint by rotating firstPoint around secondPoint by +90 degrees
+    x3 = x2 + (y1 - y2)
+    y3 = y2 - (x1 - x2)
+
+    thirdPoint = (x3, y3)
+
+    return secondPoint, thirdPoint
+
+
+
 # Example usage:
 if __name__ == "__main__":
-    pass
+    campoint1 = (1, 3)
+    realpoint1 = (2, 4)
+    campoint2 = (1.5, 1.5)
+    realpoint2 = (2, 2.5)
+    campoint3 = (3, 2)
+    # ic(calculate_alpha(campoint1, campoint2))
+    # ic(calculate_beta(campoint2, campoint3))
+    # ic(calculate_scale(campoint1, campoint2, realpoint1, realpoint2))
+    # ic(calculate_movement(campoint2[0], campoint2[1], calculate_scale(campoint1, campoint2, realpoint1, realpoint2),
+    #                          calculate_alpha(campoint1, campoint2), calculate_beta(campoint2, campoint3)))
+
+    # ic(calculateCameraMovementOffset(campoint1, campoint2, campoint1, realpoint1, realpoint2))
+
+    firstPoint = (1, 3)
+    secondPoint = (3, 1)
+    thirdPoint = (5,3)
+    # ic(extrapolateManipulatorPosition(firstPoint))
+    ic(calculateCameraMovementOffset(campoint1, realpoint1, realpoint2))
+    ic(calculateCameraMovementOffset(campoint1, realpoint1, realpoint2, cameraPoint2=secondPoint, cameraPoint3=thirdPoint))
