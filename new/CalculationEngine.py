@@ -162,11 +162,12 @@ def visualize_points(set_3_points):
     plt.show()
 
 if __name__ == "__main__":
-    realpoint1 = (2, 4)
+    realpoint1 = (2, 4) # Real manipulation points
     realpoint2 = (2, 2.5)
 
-    firstPoint = (1, 3)
-    secondPoint, thirdPoint = extrapolateManipulatorPosition(firstPoint)
-    result = calculateCameraMovementOffset(firstPoint, realpoint1, realpoint2)
-    visualzationSet = [firstPoint, secondPoint, thirdPoint]
+    firstCameraPoint = (1, 3) # First camera point
+
+    secondPoint, thirdPoint = extrapolateManipulatorPosition(firstCameraPoint)
+    result = calculateCameraMovementOffset(firstCameraPoint, realpoint1, realpoint2)
+    visualzationSet = [firstCameraPoint, secondPoint, thirdPoint]
     visualize_points(visualzationSet)
