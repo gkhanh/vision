@@ -3,41 +3,6 @@ import math
 from icecream import ic
 import matplotlib.pyplot as plt
 
-def icAll(func, verbose=True):
-    """
-    A decorator that uses icecream to automatically applies ic to every variable in the function
-
-    :param func: Function to be decorated
-    :param verbose: If True, print meta information ('variables', 'func', 'signature', 'parameters')
-    :return: decorator
-    """
-    def wrapper(*args, **kwargs):
-        # Retrieve the function's signature (parameters)
-        signature = inspect.signature(func)
-        parameters = signature.parameters
-
-        # Combine function arguments and keyword arguments into a dictionary
-        variables = {k: v for k, v in zip(parameters, args)}
-        variables.update(kwargs)
-
-        # Retrieve local variables defined in the function body
-        result = func(*args, **kwargs)
-
-        # Get the local variables in the function using inspect
-        frame = inspect.currentframe().f_locals
-        variables.update(frame)
-
-        # Log variables using icecream
-        for var_name, var_value in variables.items():
-            if verbose:
-                ic(var_name, var_value)  # Print variable names and values if verbose is Truei
-            else:
-                if var_name not in ['variables', 'func', 'signature', 'parameters']:
-                    ic(var_name, var_value)
-
-        return result
-
-    return wrapper
 
 
 def calculate_alpha(firstPoint, secondPoint):
@@ -201,9 +166,7 @@ if __name__ == "__main__":
     realpoint2 = (2, 2.5)
 
     firstPoint = (1, 3)
-    secondPoint = (3, 1)
-    thirdPoint = (5,3)
-    # ic(extrapolateManipulatorPosition(firstPoint))
-    ic(calculateCameraMovementOffset(firstPoint, realpoint1, realpoint2))
+    secondPoint, thirdPoint = extrapolateManipulatorPosition(firstPoint)
+    result = calculateCameraMovementOffset(firstPoint, realpoint1, realpoint2)
     visualzationSet = [firstPoint, secondPoint, thirdPoint]
     visualize_points(visualzationSet)
