@@ -1,7 +1,7 @@
 import inspect
 import math
 from icecream import ic
-
+import matplotlib.pyplot as plt
 
 def icAll(func, verbose=True):
     """
@@ -155,26 +155,55 @@ def extrapolateManipulatorPosition(firstPoint, secondPoint=None, defaultInitialO
 
     return secondPoint, thirdPoint
 
+def visualize_points(set_3_points):
+    """
+    Visualizes three points on a Cartesian plane, creates arrows from the base point (B)
+    to the other points (A and C) in the set of 3 points, with different colors for the lines and vectors.
 
+    Parameters:
+    set_3_points (list of tuple): List of 3 points (A, B, C) where B is the base point.
+    """
+    # Unzip the points into separate x and y coordinates for the set of 3 points
+    x1, y1 = zip(*set_3_points)
 
-# Example usage:
+    # Create the plot
+    plt.figure(figsize=(6, 6))
+
+    # Plot the set of 3 points and connect them with lines (no fill)
+    plt.plot(x1[:2], y1[:2], marker='o', label='Y', color='blue', linestyle='-', markersize=8)  # AB in blue
+    plt.plot(x1[1:], y1[1:], marker='o', label='X', color='red', linestyle='-', markersize=8)  # BC in red
+
+    # Plot arrows from the base point (B) to the other points (A and C) in set_3_points
+    B = set_3_points[1]  # Base point B is the second point in the set of 3 points (index 1)
+    A, C = set_3_points[0], set_3_points[2]  # A is the first point, C is the third point
+
+    # Plot vector AB (from B to A) in blue
+    plt.arrow(B[0], B[1], A[0] - B[0], A[1] - B[1],
+              head_width=0.2, head_length=0.3, fc='blue', ec='blue')
+
+    # Plot vector BC (from B to C) in red
+    plt.arrow(B[0], B[1], C[0] - B[0], C[1] - B[1],
+              head_width=0.2, head_length=0.3, fc='red', ec='red')
+
+    # Add labels and title
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.title('Visualization of the Camera Calibration System')
+    plt.legend()
+
+    # Show the plot
+    plt.grid(True)
+    plt.axis('equal')
+    plt.show()
+
 if __name__ == "__main__":
-    campoint1 = (1, 3)
     realpoint1 = (2, 4)
-    campoint2 = (1.5, 1.5)
     realpoint2 = (2, 2.5)
-    campoint3 = (3, 2)
-    # ic(calculate_alpha(campoint1, campoint2))
-    # ic(calculate_beta(campoint2, campoint3))
-    # ic(calculate_scale(campoint1, campoint2, realpoint1, realpoint2))
-    # ic(calculate_movement(campoint2[0], campoint2[1], calculate_scale(campoint1, campoint2, realpoint1, realpoint2),
-    #                          calculate_alpha(campoint1, campoint2), calculate_beta(campoint2, campoint3)))
-
-    # ic(calculateCameraMovementOffset(campoint1, campoint2, campoint1, realpoint1, realpoint2))
 
     firstPoint = (1, 3)
     secondPoint = (3, 1)
     thirdPoint = (5,3)
     # ic(extrapolateManipulatorPosition(firstPoint))
-    ic(calculateCameraMovementOffset(campoint1, realpoint1, realpoint2))
-    ic(calculateCameraMovementOffset(campoint1, realpoint1, realpoint2, cameraPoint2=secondPoint, cameraPoint3=thirdPoint))
+    ic(calculateCameraMovementOffset(firstPoint, realpoint1, realpoint2))
+    visualzationSet = [firstPoint, secondPoint, thirdPoint]
+    visualize_points(visualzationSet)
